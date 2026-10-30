@@ -167,14 +167,18 @@
       }
 
       clear() {
-        thiscurrentOperand = '0';
+        this.currentOperand = '0';
         this.previousOperand = '';
         this.operation = undefined;
         this.shouldResetScreen = false;
       }
 
       delete() {
-        if (this.currentOperand === '0' || this.shouldResetScreen) return;
+        if (this.shouldResetScreen) {
+          this.clear();
+          return;
+        }
+        if (!this.currentOperand || this.currentOperand === '0') return;
         if (this.currentOperand.length === 1) {
           this.currentOperand = '0';
         } else {
@@ -183,11 +187,15 @@
       }
 
       appendNumber(number) {
-        if (this.sholdResetScreen) {
-          this.currentOperand = '';
+        if (this.shouldResetScreen) {
+          this.currentOperand = '0';
           this.shouldResetScreen = false;
         }
         if (number === '.' && this.currentOperand.includes('.')) return;
+        if (this.currentOperand === '' && number === '.') {
+          this.currentOperand = '0.';
+          return;
+        }
         if (this.currentOperand === '0' && number !== '.') {
           this.currentOperand = number;
         } else {
@@ -197,6 +205,11 @@
 
       chooseOperation(operation) {
         if (this.currentOperand === '' && this.previousOperand === '') return;
+
+        if (this.currentOperand === '') {
+          this.operation = operation;
+          return;
+        }
 
         if (this.previousOperand !== '') {
           this.compute();
@@ -211,6 +224,7 @@
         const current = parseFloat(this.currentOperand);
         if (isNaN(current)) return;
         this.currentOperand = (current / 100).toString();
+        this.shouldResetScreen = true;
       }
 
       compute() {
@@ -242,8 +256,7 @@
             return;
         }
 
-        this.currentOperand = Math.round((computation + Number.EPSILON) * 1e10) / 1e10;
-        this.currentOperand = this.currentOperand.toString();
+        this.currentOperand = parseFloat(computation.toFixed(10)).toString();
         this.operation = undefined;
         this.previousOperand = '';
         this.shouldResetScreen = true;
@@ -302,6 +315,7 @@
       } else if (e.key === '*') {
         calculator.chooseOperation('×');
       } else if (e.key === '/') {
+        e.preventDefault();
         calculator.chooseOperation('÷');
       } else if (e.key === 'Enter' || e.key === '=') {
         e.preventDefault();
