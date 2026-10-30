@@ -58,7 +58,7 @@ Briefly report the root cause or features implemented, files changed, tests perf
 `;
 const ai = new GoogleGenAI({});
 
-
+//this is retrun current folde rpath
 const current_folder = process.cwd()
 // console.log(tools)
 let history = [];
