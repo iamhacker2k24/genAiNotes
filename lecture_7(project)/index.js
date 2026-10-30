@@ -111,7 +111,7 @@ const main = async (prompt) => {
         });
 
         let interaction;
-        const MAX_ITERATIONS = 20;
+        const MAX_ITERATIONS = 120;
 
         for (let i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -146,7 +146,7 @@ const main = async (prompt) => {
                         .map(item => item.text)
                         .join("\n");
 
-                console.log("\n✅ AI Final Response:\n");
+                console.log("\n  AI Final Response:\n");
                 console.log(response || "Task completed.");
 
                 return response;
@@ -218,4 +218,4 @@ const main = async (prompt) => {
 
 
 
-main("check why my calculator code is not working fix bugs  ")
+main("create a proper react folder and protfolio website code ok  ")
