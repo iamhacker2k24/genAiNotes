@@ -58,24 +58,164 @@ Briefly report the root cause or features implemented, files changed, tests perf
 `;
 const ai = new GoogleGenAI({});
 
-//this is retrun current folde rpath
+//this is retrun current folde path
 const current_folder = process.cwd()
-// console.log(tools)
+// console.log(tools[0])
 let history = [];
+
+
+
+
+const availableFunctions = {
+    readFile: async ({ path }) => readFile(path),
+
+    writtingInFile: async ({ path, content }) =>
+        writtingInFile(path, content),
+
+    appendContent: async ({ path, content }) =>
+        appendContent(path, content),
+
+    Isexits: async ({ path }) => Isexits(path),
+
+    deleteFile: async ({ path }) => deleteFile(path),
+
+    createNewFolder: async ({ path }) => createNewFolder(path),
+
+    readFolder: async ({ path }) => readFolder(path)
+};
+
+
+// Safely convert Gemini arguments into a JavaScript object
+const parseArguments = (args) => {
+    if (typeof args === "string") {
+        return JSON.parse(args);
+    }
+
+    return args || {};
+};
+
 
 const main = async (prompt) => {
     try {
-        const interactions = await ai.interactions.create({
-            model: "gemini-3.8-flash",
-            inout: `${prompt} current folder path is ${current_folder} `,
-            tools,
-            system_instruction,
-            store: false
+        console.log("\n AI Agent Started...\n");
 
-        })
+        // Add user prompt to history
+        history.push({
+            type: "user_input",
+            content: [
+                {
+                    type: "text",
+                    text: `${prompt}\nCurrent folder path: ${current_folder}`
+                }
+            ]
+        });
+
+        let interaction;
+        const MAX_ITERATIONS = 20;
+
+        for (let i = 0; i < MAX_ITERATIONS; i++) {
+
+            console.log(`\n AI Thinking...... (${i + 1})`);
+
+            // Send complete conversation history
+            interaction = await ai.interactions.create({
+                model: "gemini-3.8-flash",
+                input: history,
+                tools,
+                system_instruction,
+                store: false
+            });
+
+            // Preserve ALL model-generated steps
+            const steps = interaction.steps || [];
+            history.push(...steps);
+
+            // Get all function calls
+            const functionCalls = steps.filter(
+                step => step.type === "function_call"
+            );
+
+            // If no function calls, AI has completed its response
+            if (functionCalls.length === 0) {
+
+                const response = interaction.output_text ||
+                    steps
+                        .filter(step => step.type === "model_output")
+                        .flatMap(step => step.content || [])
+                        .filter(item => item.type === "text")
+                        .map(item => item.text)
+                        .join("\n");
+
+                console.log("\n✅ AI Final Response:\n");
+                console.log(response || "Task completed.");
+
+                return response;
+            }
+
+            // Execute every requested function
+            for (const call of functionCalls) {
+
+                console.log(`\nExecuting: ${call.name}`);
+                console.log("Arguments:", call.arguments);
+
+                let result;
+
+                try {
+                    const fn = availableFunctions[call.name];
+
+                    if (!fn) {
+                        throw new Error(
+                            `Function '${call.name}' is not available.`
+                        );
+                    }
+
+                    const args = parseArguments(call.arguments);
+
+                    // Execute with correctly mapped named arguments
+                    result = await fn(args);
+
+                    console.log(` ${call.name} completed`);
+
+                } catch (error) {
+
+                    console.error(
+                        `❌ ${call.name} failed:`,
+                        error.message
+                    );
+
+                    result = {
+                        success: false,
+                        error: error.message
+                    };
+                }
+
+                // Return function result to Gemini
+                const functionResult = {
+                    type: "function_result",
+                    name: call.name,
+                    call_id: call.id,
+                    result: [
+                        {
+                            type: "text",
+                            text: JSON.stringify(result ?? null)
+                        }
+                    ]
+                };
+
+                history.push(functionResult);
+            }
+        }
+
+        console.log("\n Maximum iterations reached.");
+        return "Agent stopped because the maximum iteration limit was reached.";
 
     } catch (error) {
-        console.log(`error from ai call => ${error.message}`)
-    }
-}
 
+        console.error("\nAI Agent Error:", error.message);
+        return null;
+    }
+};
+
+
+
+main("check why my calculator code is not working fix bugs  ")

@@ -2,16 +2,18 @@ import { GoogleGenAI, Type } from '@google/genai';
 const readFileInfo = {
     type: "function",
     name: "readFile",
-    description: "this is a function who read a file based on given file path ",
+    description: "Read a file using its file path.",
     parameters: {
         type: Type.OBJECT,
         properties: {
-            type: Type.STRING,
-            description: "it is the file path that you want to read"
-        }
-    },
-    required: ["path"]
-}
+            path: {
+                type: Type.STRING,
+                description: "The file path to read."
+            }
+        },
+        required: ["path"]
+    }
+};
 
 const writtingInfo = {
     type: "function",
