@@ -1,0 +1,76 @@
+
+109
+
+Automatic Zoom
+A PDF Reference for
+The Complete Node.js Dev Course
+Version 3.0
+Version 1.0 109
+Lesson 4: Getting Started with Socket.io
+In this lesson, you’ll install and configure Socket.io. Socket.io comes with everything
+needed to set up a WebSocket server using Node.
+Setting up Socket.io
+First up, install the module.
+npm i socket.io@2.20
+Socket.io can be used on its own or with Express. Since the chat application will be
+serving up client-side assets, both Express and Socket.io will get set up. The server file
+below shows how to get this done.
+Version 1.0 110
+const path = require('path')
+const http = require('http')
+const express = require('express')
+const socketio = require('socket.io')
+// Create the Express application
+const app = express()
+// Create the HTTP server using the Express app
+const server = http.createServer(app)
+// Connect socket.io to the HTTP server
+const io = socketio(server)
+const port = process.env.PORT || 3000
+const publicDirectoryPath = path.join(__dirname, '../public')
+app.use(express.static(publicDirectoryPath))
+// Listen for new connections to Socket.io
+io.on('connection', () => {
+console.log('New WebSocket connection')
+})
+server.listen(port, () => {
+console.log(`Server is up on port ${port}!`)
+The server above uses io.on which is provided by Socket.io. on allows the server to listen
+for an event and respond to it. In the example above, the server listens for connection
+which allows it to run some code when a client connects to the WebSocket server.
+Socket.io on the Client
+Socket.io is also used on the client to connect to the server. Socket.io automatically serves
+up /socket.io/socket.io.js which contains the client-side code. The script tags below
+load in the client-side library followed by a custom JavaScript file.
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/chat.js"></script>
+Your client-side JavaScript can then connect to the Socket.io server by calling io . io is
+provided by the client-side Socket.io library. Calling this function will set up the connection,
+and it’ll cause the server’s connection event handler to run.
+Version 1.0 111
+io()
+Documentation Links
+• Socket.io
+Lesson 5: Socket.io Events
+In this lesson, you’ll learn how to work with events in Socket.io. Events allow you to
+transfer data from the client to the server or from the server to the client.
+Working with Events
+There are two sides to every event, the sender and the receiver. If the server is the
+sender, then the client is the receiver. If the client is the sender, then the server is the
+receiver.
+Events can be sent from the sender using emit . Events can be received by the receiver
+using on . The example below shows how this pattern can be used to create a simple
+counter application. The following snippet contains the client-side JavaScript code.
+const socket = io()
+// Listen for "countUpdated"
+socket.on('countUpdated', (count) => {
+console.log('The count has been updated!', count)
+})
+document.querySelector('#increment').addEventListener('click', () => {
+// Emit "increment
+socket.emit('increment')
+})
+The client-side code uses on to listen for the countUpdated event. A message will be
+logged with the current count when that event is received. The client-side code also uses
+emit to send the increment event. This occurs when a button on the screen is clicked.
+The server-side code for this example is below.
