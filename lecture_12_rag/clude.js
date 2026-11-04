@@ -13,7 +13,7 @@ async function ingestPDF() {
   console.log("📄 Loading PDF...");
   const loader = new PDFLoader("./Node.pdf");
   const docs = await loader.load();
-  console.log(`✅ Pages loaded: ${docs.length}`);
+  console.log(`  Pages loaded: ${docs.length}`);
   //  2. Split 
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 6000,
@@ -21,7 +21,7 @@ async function ingestPDF() {
   });
   const splitDocs = await splitter.splitDocuments(docs);
   const cleanDocs = splitDocs.filter((d) => d.pageContent?.trim().length > 20);
-  console.log(`✅ Total clean chunks: ${cleanDocs.length}`);
+  console.log(`  Total clean chunks: ${cleanDocs.length}`);
 
   //  3. Embed ALL chunks at once (paid plan = no limit) 
   console.log("\n🔄 Embedding all chunks...");
@@ -31,10 +31,10 @@ async function ingestPDF() {
   });
 
   const texts = cleanDocs.map((d) => d.pageContent);
-  const vectors = await embedModel.embedDocuments(texts);  // ✅ all at once
+  const vectors = await embedModel.embedDocuments(texts);  //   all at once
 
-  console.log(`✅ Got ${vectors.length} embeddings`);
-  console.log(`✅ Dimensions: ${vectors[0].length}`);
+  console.log(`  Got ${vectors.length} embeddings`);
+  console.log(`  Dimensions: ${vectors[0].length}`);
 
   //  4. Validate ALL vectors 
   const badVectors = vectors
@@ -45,7 +45,7 @@ async function ingestPDF() {
     console.log(`\n⚠️  Bad vectors found:`);
     badVectors.forEach((b) => console.log(`   chunk-${b.i}: dim=${b.len}`));
   } else {
-    console.log(`✅ All vectors valid!`);
+    console.log(`  All vectors valid!`);
   }
 
   //  5. Build ALL records 
@@ -100,7 +100,7 @@ async function ingestPDF() {
 
     const result = await res.json();
     uploadedTotal += result.upsertedCount ?? batch.length;
-    console.log(`  ✅ Batch ${batchNum} done — total: ${uploadedTotal}/${allRecords.length}`);
+    console.log(`    Batch ${batchNum} done — total: ${uploadedTotal}/${allRecords.length}`);
   }
 
   //  8. Final Report ─

@@ -15,13 +15,13 @@ async function createIndex() {
       await pinecone.deleteIndex(indexName);
       // Wait for deletion
       await new Promise((r) => setTimeout(r, 10000));
-      console.log("✅ Old index deleted");
+      console.log("  Old index deleted");
     }
   } catch (e) {
     console.log("ℹ️  No existing index found, creating fresh...");
   }
 
-  // ✅ Create CLASSIC vector index — dimension + metric + spec = no document schema
+  //   Create CLASSIC vector index — dimension + metric + spec = no document schema
   console.log(`\n📦 Creating classic vector index "${indexName}"...`);
   await pinecone.createIndex({
     name: indexName,
@@ -33,13 +33,13 @@ async function createIndex() {
         region: "us-east-1",
       },
     },
-    waitUntilReady: true,     // ✅ waits until index is ready to use
+    waitUntilReady: true,     //   waits until index is ready to use
     suppressConflicts: true,
   });
 
   // Confirm it's the right type
   const info = await pinecone.describeIndex(indexName);
-  console.log("\n✅ Index created successfully!");
+  console.log("\n  Index created successfully!");
   console.log(`   Name      : ${info.name}`);
   console.log(`   Host      : ${info.host}`);
   console.log(`   Dimension : ${info.dimension}`);

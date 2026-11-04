@@ -7,12 +7,12 @@ import readline from "readline";
 // ── 1. Setup Models + Pinecone ────────────────────────────────
 const embedModel = new GoogleGenerativeAIEmbeddings({
   apiKey: process.env.GOOGLE_API_KEY,
-  model:  "gemini-embedding-001",
+  model: "gemini-embedding-001",
 });
 
 const llm = new ChatGoogleGenerativeAI({
-  apiKey:      process.env.GOOGLE_API_KEY,
-  model:       "gemini-3.5-flash",
+  apiKey: process.env.GOOGLE_API_KEY,
+  model: "gemini-3.5-flash",
   temperature: 0.3,
 });
 
@@ -27,16 +27,16 @@ async function searchPinecone(question, HOST) {
   const questionVector = await embedModel.embedQuery(question);
 
   const res = await fetch(`https://${HOST}/query`, {
-    method:  "POST",
+    method: "POST",
     headers: {
-      "Api-Key":      process.env.PINECONE_API_KEY,
+      "Api-Key": process.env.PINECONE_API_KEY,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      vector:          questionVector,
-      topK:            5,
+      vector: questionVector,
+      topK: 5,
       includeMetadata: true,
-      namespace:       "",
+      namespace: "",
     }),
   });
 
@@ -57,14 +57,14 @@ async function askGemini(question, matches) {
     .map((m) => `[Page ${m.metadata?.page ?? "?"}]:\n${m.metadata?.text}`)
     .join("\n\n─────────────\n\n");
 
-  // ✅ Build history string for Gemini
+  //   Build history string for Gemini
   const historyText = chatHistory.length > 0
     ? chatHistory
-        .map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`)
-        .join("\n")
+      .map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`)
+      .join("\n")
     : "No previous conversation.";
 
-  // ✅ Prompt includes history + context + new question
+  //   Prompt includes history + context + new question
   const prompt = `You are a helpful assistant answering questions about a PDF document.
 Use the PDF context below to answer. If answer is not in context, say "This is not covered in the document."
 
@@ -99,11 +99,11 @@ async function askQuestion(question, HOST) {
   console.log("🤖 Thinking...\n");
   const answer = await askGemini(question, matches);
 
-  // ✅ Save question + answer to history
-  chatHistory.push({ role: "user",      content: question });
-  chatHistory.push({ role: "assistant", content: answer   });
+  //   Save question + answer to history
+  chatHistory.push({ role: "user", content: question });
+  chatHistory.push({ role: "assistant", content: answer });
 
-  // ✅ Keep only last 10 exchanges (20 messages) to avoid token limit
+  //   Keep only last 10 exchanges (20 messages) to avoid token limit
   if (chatHistory.length > 20) {
     chatHistory.splice(0, 2); // remove oldest Q+A pair
   }
@@ -158,7 +158,7 @@ async function startChat() {
   console.log("═".repeat(50));
 
   const rl = readline.createInterface({
-    input:  process.stdin,
+    input: process.stdin,
     output: process.stdout,
   });
 
